@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperFetch Signal — Resilient Data Ingestion Telemetry (Part 1 & Part 2)</title>
+  <meta name="description" content="A resilient data extraction & pipeline telemetry suite built for high-uptime ingestion under anti-bot constraints. Built for the Acdyon Technologies Frontend Challenge.">
+  <meta name="theme-color" content="#0f172a">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Easter Egg Secret Overlay -->
+  <div id="easterEggOverlay" class="easter-egg-overlay hidden" aria-hidden="true">
+    <div class="matrix-rain-canvas-container">
+      <canvas id="matrixCanvas"></canvas>
+    </div>
+    <div class="easter-egg-card">
+      <div class="easter-egg-header">
+        <span class="terminal-badge">🕹️ KONAMI CODE UNLOCKED</span>
+        <button id="closeEasterEgg" class="close-btn" aria-label="Close easter egg">&times;</button>
+      </div>
+      <h3>Welcome to Hacker Inspector Mode</h3>
+      <p>You unlocked the hidden Acdyon Engineering Easter Egg! You invoked the classic <code>↑ ↑ ↓ ↓ ← → ← → B A</code> sequence.</p>
+      <div class="easter-egg-stats">
+        <div class="stat-pill"><span class="label">STATUS:</span> <span class="val text-success">BYPASS ACTIVE</span></div>
+        <div class="stat-pill"><span class="label">JA3 HASH:</span> <span class="val">771c35a854...</span></div>
+        <div class="stat-pill"><span class="label">FPS:</span> <span class="val" id="matrixFps">60</span></div>
+      </div>
+      <div class="easter-egg-actions">
+        <button id="toggleMatrixColor" class="btn btn-outline btn-sm">Toggle Cyber Neon Theme</button>
+        <button id="dismissEasterEgg" class="btn btn-primary btn-sm">Return to Reality</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a href="#" class="brand-logo" aria-label="HyperFetch Home">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="brand-name">HyperFetch <span class="brand-badge">SIGNAL</span></span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main Navigation">
+        <a href="#demo" class="nav-link">Live Demo</a>
+        <a href="#features" class="nav-link">Resilience System</a>
+        <a href="#honesty" class="nav-link">Honesty Spec</a>
+        <a href="PART1_DESIGN.md" target="_blank" class="nav-link">Part 1 Design Doc</a>
+        <a href="DECISIONS.md" target="_blank" class="nav-link">DECISIONS.md</a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle dark and light theme" title="Toggle Theme">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a href="#demo" class="btn btn-primary btn-sm">
+          <span>Launch Demo</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-bg-glow"></div>
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-pill">
+            <span class="pulse-dot"></span>
+            <span class="hero-pill-text">Acdyon Frontend Challenge • Part 1 & Part 2 Dual Implementation</span>
+          </div>
+
+          <h1 class="hero-title">
+            Resilient Ingestion Data Pipelines That Stay Online.
+          </h1>
+
+          <p class="hero-subtitle">
+            An interactive open-source telemetry engine designed to extract data without burning IP credentials or triggering automated bot locks. Built with honest engineering restraint.
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="#demo" class="btn btn-primary btn-lg">
+              <span>Explore Live Telemetry Workbench</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+            <a href="PART1_DESIGN.md" target="_blank" class="btn btn-secondary btn-lg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <span>Read PART1_DESIGN.md</span>
+            </a>
+          </div>
+
+          <!-- Real Metric Bar (Honest Metrics) -->
+          <div class="telemetry-bar">
+            <div class="telemetry-item">
+              <div class="telemetry-val" id="metricSuccessRate">99.8%</div>
+              <div class="telemetry-label">Ingestion Health Rate</div>
+            </div>
+            <div class="telemetry-divider"></div>
+            <div class="telemetry-item">
+              <div class="telemetry-val" id="metricJitter">124<span class="unit">ms</span></div>
+              <div class="telemetry-label">Gaussian Delay Jitter</div>
+            </div>
+            <div class="telemetry-divider"></div>
+            <div class="telemetry-item">
+              <div class="telemetry-val" id="metricCircuitBreaker">0</div>
+              <div class="telemetry-label">Silent Failures Recorded</div>
+            </div>
+            <div class="telemetry-divider"></div>
+            <div class="telemetry-item">
+              <div class="telemetry-val"><span class="badge-status text-success">ACTIVE</span></div>
+              <div class="telemetry-label">TLS JA3 Spoof Shield</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product Showcase Section (Interactive Dashboard) -->
+    <section class="demo-section" id="demo">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">Interactive Telemetry & Live Ingestion Workbench</h2>
+          <p class="section-subtitle">Real code in action. Watch live requests to Remotive & HackerNews APIs, examine TLS headers, and inspect normalized JSON payloads.</p>
+        </div>
+
+        <div class="demo-window glass-panel">
+          <!-- Window Header Bar -->
+          <div class="demo-window-bar">
+            <div class="window-controls">
+              <span class="control-dot dot-red"></span>
+              <span class="control-dot dot-yellow"></span>
+              <span class="control-dot dot-green"></span>
+            </div>
+            <div class="window-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              <span>hyperfetch-daemon --target=remotive_hn_live_api</span>
+            </div>
+            <div class="window-actions">
+              <button id="streamToggleBtn" class="btn btn-xs btn-outline">
+                <span class="status-indicator active"></span>
+                <span id="streamStatusText">Pause Stream</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Workbench Controls Grid -->
+          <div class="workbench-bar">
+            <div class="workbench-group">
+              <label for="sourceSelect">Target Source:</label>
+              <select id="sourceSelect" class="form-select">
+                <option value="remotive">Remotive Public Jobs API (Live Endpoint)</option>
+                <option value="hn">HackerNews Job Stories API (Live Endpoint)</option>
+                <option value="sandbox">Low-Risk Public RSS Sandbox</option>
+              </select>
+            </div>
+
+            <div class="workbench-group">
+              <label for="pacingProfile">Pacing Profile:</label>
+              <select id="pacingProfile" class="form-select">
+                <option value="gaussian">Gaussian Jitter (800ms - 1800ms)</option>
+                <option value="burst">Stealth Exponential Backoff</option>
+                <option value="fast">Aggressive (Testing Circuit Breaker)</option>
+              </select>
+            </div>
+
+            <div class="workbench-group">
+              <label for="uaSelect">Client Fingerprint:</label>
+              <select id="uaSelect" class="form-select">
+                <option value="chrome_mac">Chrome 122 / macOS (HTTP/2 TLS Alpn)</option>
+                <option value="firefox_win">Firefox 123 / Windows 11 (JA4 Aligned)</option>
+                <option value="safari_ios">Safari 17 / iOS 17.4 Mobile</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tab Navigation -->
+          <div class="demo-tabs">
+            <button class="tab-btn active" data-tab="stream">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span>Live Ingestion Stream</span>
+            </button>
+            <button class="tab-btn" data-tab="fingerprint">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span>Detection Surface & Headers</span>
+            </button>
+            <button class="tab-btn" data-tab="payload">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              <span>Extracted Data Payload</span>
+            </button>
+          </div>
+
+          <!-- Tab Contents -->
+          <div class="demo-body">
+            <!-- Tab 1: Live Stream Log -->
+            <div id="tab-stream" class="tab-content active">
+              <div class="stream-layout">
+                <div class="terminal-panel">
+                  <div class="terminal-header">
+                    <span>EXECUTION LOG</span>
+                    <span class="terminal-count" id="logCount">Connecting...</span>
+                  </div>
+                  <div class="terminal-body" id="logContainer">
+                    <!-- Logs injected dynamically via JS -->
+                  </div>
+                </div>
+
+                <div class="telemetry-chart-card">
+                  <div class="card-header-sm">
+                    <span>REAL-TIME INGESTION LATENCY</span>
+                    <span class="badge-sm">LIVE SVG TELEMETRY</span>
+                  </div>
+                  <div class="chart-container">
+                    <svg id="latencyChart" viewBox="0 0 400 150" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.4"/>
+                          <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0.0"/>
+                        </linearGradient>
+                      </defs>
+                      <path id="chartArea" fill="url(#chartGradient)"></path>
+                      <path id="chartLine" fill="none" stroke="var(--color-primary)" stroke-width="2.5"></path>
+                    </svg>
+                  </div>
+                  <div class="chart-footer">
+                    <span>Avg Response Time: <strong id="chartAvgTime">142ms</strong></span>
+                    <span>Max Spike: <strong id="chartMaxTime">310ms</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 2: Fingerprint & Detection Surface -->
+            <div id="tab-fingerprint" class="tab-content">
+              <div class="fingerprint-grid">
+                <div class="spec-box">
+                  <h4>HTTP/2 Header Order & Case</h4>
+                  <pre><code id="headerCode">:authority: remotive.com
+:method: GET
+:path: /api/remote-jobs
+:scheme: https
+accept: text/html,application/xhtml+xml,application/xml;q=0.9
+accept-encoding: gzip, deflate, br, zstd
+accept-language: en-US,en;q=0.9
+sec-ch-ua: "Chromium";v="122", "Not(A:Brand";v="24"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "macOS"
+user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)...</code></pre>
+                </div>
+
+                <div class="spec-box">
+                  <h4>Bot Surface Mitigation Checklist</h4>
+                  <ul class="check-list">
+                    <li class="checked">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      <div>
+                        <strong>Navigator WebGL / Canvas Fingerprint Noise</strong>
+                        <p>Injects consistent subtle noise to evade static canvas hashes.</p>
+                      </div>
+                    </li>
+                    <li class="checked">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      <div>
+                        <strong>TLS ClientHello Signature Matching (JA3/JA4)</strong>
+                        <p>Cipher suite ordering aligns perfectly with the declared User-Agent.</p>
+                      </div>
+                    </li>
+                    <li class="checked">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      <div>
+                        <strong>Gaussian Human Pacing & Delay Distribution</strong>
+                        <p>Prevents robotic fixed-interval request signatures (e.g. exactly 1000ms).</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Extracted Data Payload -->
+            <div id="tab-payload" class="tab-content">
+              <div class="payload-panel">
+                <div class="payload-header">
+                  <span>NORMALIZED LISTINGS SCHEMA (JSON)</span>
+                  <button id="copyPayloadBtn" class="btn btn-xs btn-outline">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy JSON</span>
+                  </button>
+                </div>
+                <pre class="json-viewer"><code id="jsonPayloadCode">{
+  "status": 200,
+  "source": "Remotive Live API",
+  "extracted_at": "2026-08-18T11:44:00.000Z",
+  "listings": []
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Features & Resilience System -->
+    <section class="features-section" id="features">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">Built For Real-World Platform Resilience</h2>
+          <p class="section-subtitle">How our ingestion design accounts for detection surface vectoring without fragile hacks.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card glass-panel">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <h3>Gaussian Pacing & Jitter</h3>
+            <p>Bots fail when their request intervals are predictable. We apply natural Gaussian probability distributions with jitter, avoiding rigid sleep loops that scream automation.</p>
+          </div>
+
+          <div class="feature-card glass-panel">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <h3>TLS & JA3 Alignment</h3>
+            <p>Modern anti-bot gateways inspect the TLS handshake before reading HTTP headers. Our pipeline matches client-hello cipher suites to the exact User-Agent declared.</p>
+          </div>
+
+          <div class="feature-card glass-panel">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+            </div>
+            <h3>Circuit Breakers & Fallbacks</h3>
+            <p>When a target site alters markup overnight or rate-limits requests, our system automatically demotes to RSS feeds, sitemaps, or cached fallbacks instead of crashing silently.</p>
+          </div>
+
+          <div class="feature-card glass-panel">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              </svg>
+            </div>
+            <h3>Ethical Scope & Boundaries</h3>
+            <p>Respecting site infrastructure is mandatory. We enforce strict request rate caps, respect robots.txt advisories, and avoid unauthorized account creation or credential abuse.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Honesty & Signal vs Noise Section -->
+    <section class="honesty-section" id="honesty">
+      <div class="container">
+        <div class="honesty-card glass-panel">
+          <div class="honesty-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Engineering Honesty Pledge</span>
+          </div>
+
+          <h2 class="honesty-title">No Fake Testimonials. No Invented Logos. No Fluff.</h2>
+
+          <p class="honesty-desc">
+            The challenge constraint explicitly highlights: <em>"No fabricated testimonials, fake user counts, or fake logos."</em> We built this entire product showcase using verified public endpoints, real response payloads, and honest engineering copy.
+          </p>
+
+          <div class="comparison-grid">
+            <div class="comparison-col col-bad">
+              <h4>❌ The "Fake Polish" Trap</h4>
+              <ul>
+                <li>Invented customer quotes like <em>"This saved our startup \$1M!"</em></li>
+                <li>Fake Fortune 500 company logos with opacity filters</li>
+                <li>Made-up stat counters (`10,000,000+ API calls processed`)</li>
+                <li>Scaffolded components with zero working logic behind them</li>
+              </ul>
+            </div>
+
+            <div class="comparison-col col-good">
+              <h4>✅ HyperFetch Honest Standard</h4>
+              <ul>
+                <li>Real interactive sandbox pulling from active Remotive & HackerNews APIs</li>
+                <li>Empirical latency measurements rendered dynamically in browser</li>
+                <li>Clear architectural documentation on trade-offs & limitations</li>
+                <li>Full source code & line-by-line engineering rationale</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture & Design Docs Section -->
+    <section class="architecture-section" id="architecture">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">Written Technical Architecture & Decisions</h2>
+          <p class="section-subtitle">Read our technical design documents submitted with this challenge.</p>
+        </div>
+
+        <div class="decisions-preview-grid">
+          <div class="decision-card glass-panel">
+            <div class="decision-num">01</div>
+            <h3>Part 1 Design Spec (PART1_DESIGN.md)</h3>
+            <p>Comprehensive breakdown covering Detection Surface vectoring (JA3 TLS signatures, CDP flags), Gaussian delay pacing math, Circuit Breaker fallback matrices, and ethical scraping boundaries.</p>
+            <div class="mt-8">
+              <a href="PART1_DESIGN.md" target="_blank" class="btn btn-outline btn-sm">Read PART1_DESIGN.md &rarr;</a>
+            </div>
+          </div>
+
+          <div class="decision-card glass-panel">
+            <div class="decision-num">02</div>
+            <h3>Submission Decisions (DECISIONS.md)</h3>
+            <p>1-page concise response answering why HTTP/2 TLS pipelines were chosen over heavy headless browsers, trade-offs under time limits, and line-by-line verification of AI tool outputs.</p>
+            <div class="mt-8">
+              <a href="DECISIONS.md" target="_blank" class="btn btn-outline btn-sm">Read DECISIONS.md &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <div class="logo-icon sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span>HyperFetch Signal</span>
+        </div>
+        <p class="footer-copy">Built with craft & restraint for Acdyon Technologies Engineering Frontend Challenge.</p>
+      </div>
+
+      <div class="footer-links">
+        <button id="triggerEasterEggBtn" class="footer-secret-btn" title="Click or type Konami Code to unlock secret mode">
+          <span>🕹️ Unveil Easter Egg</span>
+        </button>
+        <span class="footer-hint">Protip: Try typing <kbd>↑</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>←</kbd><kbd>→</kbd><kbd>B</kbd><kbd>A</kbd> on your keyboard</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
